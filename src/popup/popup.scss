@@ -1,0 +1,75 @@
+:root {
+  --form-element-spacing-vertical: 0.2rem;
+  --form-element-spacing-horizontal: 0.2rem;
+  --typography-spacing-vertical: 0.2rem;
+}
+
+body {
+  width: 300px;
+  font-size: 16px;
+}
+
+// elements
+.box {
+  border-radius: var(--border-radius);
+  border: 1px solid var(--muted-color);
+  padding: 1rem;
+}
+
+// utils
+.my-1 {
+  margin-top: 0.2rem;
+  margin-bottom: 0.2rem;
+}
+
+.my-2 {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+.ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fab {
+  z-index: 1;
+  position: fixed;
+  bottom: 0.5rem;
+  right: 0.7rem;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 2rem;
+  cursor: pointer;
+}
+
+.center-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+// custom scrollbar
+::-webkit-scrollbar {
+  width: 16px;
+}
+
+::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #3949578c;
+  border-radius: 20px;
+  border: 6px solid transparent;
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: #394957c2;
+}

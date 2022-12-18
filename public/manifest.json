@@ -1,0 +1,11 @@
+{
+  "manifest_version": 3,
+  "name": "Prototype CSS",
+  "description": "A quick way to prototype CSS :)",
+  "version": "0.0.1",
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "permissions": ["activeTab", "storage", "tabs", "scripting"],
+  "options_page": "options.html"
+}
