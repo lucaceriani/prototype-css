@@ -1,32 +1,45 @@
+import { isMatch } from 'matcher'
 import { useEffect, useState } from 'react'
-import { CSSProto } from '../types'
 import { injectCss, removeCss } from '../inject'
-import { getAllCssProtos } from '../storage'
+import { getAllCssProtos, setActive } from '../storage'
+import { CSSProto } from '../types'
 
 export const Popup = () => {
   const openOptionsPage = () => chrome.runtime.openOptionsPage()
 
-  const [url, setUrl] = useState<string>('')
+  const [url, setUrl] = useState<URL | null>(null)
   const [cssProtos, setCssProtos] = useState<CSSProto[]>([])
 
   useEffect(() => {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      const url = tabs[0].url
-      if (!url) return
-
-      const hostname = new URL(url).hostname
-      setUrl(hostname || '')
+      const tabUrl = tabs[0].url
+      if (!tabUrl) return
+      setUrl(new URL(tabUrl))
     })
-
-    // get all css prototypes
-    getAllCssProtos().then((cssProtos) => setCssProtos(cssProtos))
   }, [])
+
+  useEffect(() => {
+    if (!url) return
+    updateProtos()
+  }, [url])
+
+  const updateProtos = () =>
+    getAllCssProtos()
+      .then((cssProtos) => cssProtos.filter((p) => url?.href.includes(p.urlMatch)))
+      .then((cssProtos) => setCssProtos(cssProtos))
+
+  const handleSwitch = async (cssProto: CSSProto) => {
+    await setActive(cssProto.id, !cssProto.options.active)
+    if (cssProto.options.active) removeCss(cssProto)
+    else injectCss(cssProto)
+    updateProtos()
+  }
 
   return (
     <div style={{ padding: '1rem 0' }}>
       <hgroup>
         <h5 className="">CSS Scripts</h5>
-        <h6>{url}</h6>
+        <h6>{url?.hostname}</h6>
       </hgroup>
       <div className="my-2">
         {cssProtos.map((cssProto) => (
@@ -35,7 +48,8 @@ export const Popup = () => {
               <input
                 type="checkbox"
                 role="switch"
-                onChange={(e: any) => (e.target.checked ? injectCss(cssProto) : removeCss(cssProto))}
+                checked={cssProto.options.active}
+                onChange={() => handleSwitch(cssProto)}
               />
               {cssProto.name}
             </label>

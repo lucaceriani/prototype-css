@@ -9,6 +9,7 @@ export default defineConfig({
       input: {
         popup: 'popup.html',
         options: 'options.html',
+        background: 'background.ts',
       },
     },
   },

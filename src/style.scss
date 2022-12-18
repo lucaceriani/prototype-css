@@ -1,6 +1,6 @@
 :root {
-  --form-element-spacing-vertical: 0.2rem;
-  --form-element-spacing-horizontal: 0.2rem;
+  --form-element-spacing-vertical: 0.4rem;
+  // --form-element-spacing-horizontal: 0.2rem;
   --typography-spacing-vertical: 0.2rem;
 }
 
@@ -64,7 +64,7 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: #3949578c;
+  background-color: #394957a5;
   border-radius: 20px;
   border: 6px solid transparent;
   background-clip: content-box;

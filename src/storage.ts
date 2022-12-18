@@ -21,15 +21,44 @@ export const deleteCSSProto = async (id: string) =>
   )
 
 export const updateCSSProto = async (id: string, partialCssProto: Partial<CSSProto>) => {
+  console.log('updateCSSProto', id, partialCssProto)
+
   const cssProtos = await getAllCssProtos()
   const index = cssProtos.findIndex((cssProto) => cssProto.id == id)
   cssProtos[index] = { ...cssProtos[index], ...partialCssProto }
-  setItem('css-protos', cssProtos)
+  console.log(cssProtos)
+
+  return setItem('css-protos', cssProtos)
 }
 
 export const setActive = async (id: string, active: boolean) => {
   const cssProtos = await getAllCssProtos()
   const index = cssProtos.findIndex((cssProto) => cssProto.id == id)
   cssProtos[index].options.active = active
-  setItem('css-protos', cssProtos)
+  return setItem('css-protos', cssProtos)
 }
+
+const cssProtos: CSSProto[] = [
+  {
+    id: '1',
+    urlMatch: 'https://www.google.com/',
+    name: 'Google',
+    cssRaw: 'body { background-color: red; }',
+    cssCompiled: 'body { background-color: red; }',
+    options: {
+      active: true,
+    },
+  },
+  {
+    id: '2',
+    urlMatch: 'https://luca.gg/',
+    name: 'Google 2',
+    cssRaw: 'body { background-color: blue; }',
+    cssCompiled: 'body { background-color: blue; }',
+    options: {
+      active: true,
+    },
+  },
+]
+
+// setItem('css-protos', cssProtos)

@@ -5,7 +5,7 @@ export type CSSProto = {
   cssRaw: string
   cssCompiled: string
   options: {
-    active: boolean
+    active?: boolean
     important?: boolean
     shadowDom?: boolean
   }
