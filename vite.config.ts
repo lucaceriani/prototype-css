@@ -11,6 +11,9 @@ export default defineConfig({
         options: 'options.html',
         background: 'background.ts',
       },
+      output: {
+        entryFileNames: '[name].js',
+      },
     },
   },
   plugins: [react()],

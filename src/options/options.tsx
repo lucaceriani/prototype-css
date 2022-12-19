@@ -1,41 +1,53 @@
+import { groupBy } from 'lodash'
+import cssParser from 'prettier/parser-postcss'
+import prettier from 'prettier/standalone'
 import { useCallback, useEffect, useRef, useState } from 'react'
+import AceEditor from 'react-ace'
+import { toast, ToastContainer } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
+import short from 'short-uuid'
 import { addCSSProto, deleteCSSProto, getAllCssProtos, updateCSSProto } from '../storage'
 import { CSSProto } from '../types'
-import { groupBy } from 'lodash'
-import { useHash } from './hooks/useHash'
-import { compileString as compileSass } from 'sass'
 import { CSSEditor } from './cssEditor'
-import AceEditor from 'react-ace'
-import short from 'short-uuid'
-import { ToastContainer, toast } from 'react-toastify'
-import 'react-toastify/dist/ReactToastify.css'
-import ReactShadowRoot from 'react-shadow-root'
-import prettier from 'prettier/standalone'
-import cssParser from 'prettier/parser-postcss'
+import { useHash } from './hooks/useHash'
 
 export const Options = () => {
-  const urlCssId = useHash()
+  const { hashId, hashNewUrl } = useHash()
 
   const [allCssProtosByUrl, setAllCssProtosByUrl] = useState<{ [url: string]: CSSProto[] }>({})
-  const [allCssProtosById, setAllCssProtosById] = useState<{ [id: string]: CSSProto[] }>({})
+  const [allCssProtosById, setAllCssProtosById] = useState<{ [id: string]: CSSProto }>({})
 
   const [protoName, setProtoName] = useState('')
   const [urlMatch, setUrlMatch] = useState('')
-
   const editorRef = useRef<AceEditor>(null)
 
   const updateProtos = () =>
     getAllCssProtos().then((cssProtos) => {
       setAllCssProtosByUrl(groupBy(cssProtos, 'urlMatch'))
-      setAllCssProtosById(groupBy(cssProtos, 'id'))
+
+      // group by the id that is unique, so i don't want an array inside (groupBy)
+      setAllCssProtosById(
+        cssProtos.reduce((acc, proto) => {
+          acc[proto.id] = proto
+          return acc
+        }, {} as { [id: string]: CSSProto })
+      )
     })
 
   useEffect(() => {
-    // set the initiual value for the name of th cssprototype
-    if (!allCssProtosById[urlCssId]) return
-    setProtoName(allCssProtosById[urlCssId][0].name)
-    setUrlMatch(allCssProtosById[urlCssId][0].urlMatch)
-  }, [allCssProtosById, urlCssId])
+    if (!editorRef.current) return
+
+    if (!allCssProtosById[hashId]) {
+      setProtoName('')
+      setUrlMatch(hashNewUrl || '')
+      editorRef.current.editor.setValue('')
+    } else {
+      setProtoName(allCssProtosById[hashId].name)
+      setUrlMatch(allCssProtosById[hashId].urlMatch)
+      editorRef.current.editor.setValue(allCssProtosById[hashId].cssRaw)
+      editorRef.current.editor.gotoLine(0, 0, false) // to prevent all text from being selected
+    }
+  }, [allCssProtosById, hashId, hashNewUrl, editorRef])
 
   const saveProto = useCallback(async () => {
     const cssFromEditor = editorRef.current?.editor.getValue() || ''
@@ -61,11 +73,11 @@ export const Options = () => {
     }
 
     // check if the cssproto exists
-    if (!allCssProtosById[urlCssId]) {
+    if (!allCssProtosById[hashId]) {
       // if it does not exist create a new one
       const newProto: CSSProto = {
-        id: short.generate(),
-        name: protoName,
+        id: hashId || short.generate(),
+        name: protoName.trim() || 'untitled',
         urlMatch,
         cssRaw: formattedCss,
         cssCompiled: '',
@@ -75,7 +87,7 @@ export const Options = () => {
       // immediately navigate to the new hash
       location.hash = newProto.id
     } else {
-      await updateCSSProto(urlCssId, {
+      await updateCSSProto(hashId, {
         name: protoName,
         urlMatch,
         cssRaw: formattedCss,
@@ -94,7 +106,7 @@ export const Options = () => {
       </>,
       { type: 'success' }
     )
-  }, [urlCssId, editorRef, protoName, updateProtos])
+  }, [hashId, editorRef, protoName, updateProtos])
 
   const handleCrtlS = useCallback(
     (e: KeyboardEvent) => {
@@ -120,6 +132,13 @@ export const Options = () => {
       <div className="grid" style={{ gridTemplateColumns: '.3fr .7fr', paddingBottom: '2rem' }}>
         <div>
           <h4 style={{ marginBottom: '.5rem' }}>Prototypes</h4>
+          <button
+            onClick={() => (location.hash = short.generate())}
+            className=" outline"
+            style={{ fontSize: '1.5rem', padding: 0, lineHeight: 0 }}
+          >
+            <i className="bi bi-plus" />
+          </button>
           {Object.keys(allCssProtosByUrl)
             .sort()
             .map((urlMatch) => (
@@ -129,7 +148,7 @@ export const Options = () => {
                   <div style={{ paddingLeft: '1rem' }}>
                     <a
                       href={'#' + cssProto.id}
-                      style={{ color: cssProto.id == urlCssId ? 'var(--contrast)' : undefined }}
+                      style={{ color: cssProto.id == hashId ? 'var(--contrast)' : undefined }}
                     >
                       {cssProto.name}
                     </a>
@@ -139,44 +158,41 @@ export const Options = () => {
             ))}
         </div>
         {/* -------------------------------------------------------------------------------- */}
-        <div>
-          <hgroup>
-            <h4>Editor</h4>
-            <h6>
-              <small>{urlCssId}</small>
-            </h6>
-          </hgroup>
-          <div className="grid">
-            <label style={{ marginBottom: 0 }}>
-              Name
-              <input type="text" value={protoName} onChange={(e) => setProtoName(e.target.value)} required />
-            </label>
-            <label style={{ marginBottom: 0 }}>
-              URL contains
-              <input type="text" value={urlMatch} onChange={(e) => setUrlMatch(e.target.value)} required />
-            </label>
-            <div style={{ display: 'flex', alignItems: 'end', gap: '1rem' }}>
-              <button
-                onClick={() => saveProto()}
-                style={{ width: 'initial', flexGrow: 1, marginBottom: 'var(--spacing)' }}
-              >
-                <i className="bi bi-save" /> Save
-              </button>
-              <button
-                className="outline secondary"
-                onClick={() => confirm('Delete "' + protoName + '" ?') && deleteCSSProto(urlCssId).then(updateProtos)}
-                style={{ width: 'initial' }}
-              >
-                <i className="bi bi-trash" />
-              </button>
+        {hashId && (
+          <div>
+            <div className="grid">
+              <label style={{ marginBottom: 0 }}>
+                Name
+                <input type="text" value={protoName} onChange={(e) => setProtoName(e.target.value)} required />
+              </label>
+              <label style={{ marginBottom: 0 }}>
+                URL contains
+                <input type="text" value={urlMatch} onChange={(e) => setUrlMatch(e.target.value)} required />
+              </label>
+              <div style={{ display: 'flex', alignItems: 'end', gap: '1rem' }}>
+                <button
+                  onClick={() => saveProto()}
+                  style={{ width: 'initial', flexGrow: 1, marginBottom: 'var(--spacing)' }}
+                >
+                  <i className="bi bi-save" /> Save
+                </button>
+                <button
+                  className="outline secondary"
+                  onClick={() =>
+                    confirm('Delete "' + protoName + '" ?') &&
+                    deleteCSSProto(hashId)
+                      .then(updateProtos)
+                      .then(() => (location.hash = ''))
+                  }
+                  style={{ width: 'initial' }}
+                >
+                  <i className="bi bi-trash" />
+                </button>
+              </div>
             </div>
-          </div>
-          {allCssProtosById[urlCssId] ? (
-            <CSSEditor value={allCssProtosById[urlCssId][0].cssRaw} ref={editorRef} />
-          ) : (
             <CSSEditor ref={editorRef} />
-          )}
-        </div>
+          </div>
+        )}
       </div>
       <ToastContainer
         closeButton={false}

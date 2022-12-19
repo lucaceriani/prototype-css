@@ -3,8 +3,10 @@ import { useEffect, useState } from 'react'
 import { injectCss, removeCss } from '../inject'
 import { getAllCssProtos, setActive } from '../storage'
 import { CSSProto } from '../types'
+import short from 'short-uuid'
 
 export const Popup = () => {
+  // const openOptionsPage = () => chrome.runtime.openOptionsPage()
   const openOptionsPage = () => chrome.runtime.openOptionsPage()
 
   const [url, setUrl] = useState<URL | null>(null)
@@ -56,13 +58,15 @@ export const Popup = () => {
           </div>
         ))}
       </div>
-      <button
-        onClick={openOptionsPage}
+      <a
+        href={`options.html#${short.generate()}=//${url?.hostname}`}
+        role="button"
         className="center-center outline"
         style={{ fontSize: '1.5rem', padding: '.2rem', lineHeight: 1 }}
+        target="_blank"
       >
         <i className="bi bi-plus" />
-      </button>
+      </a>
     </div>
   )
 }
