@@ -40,21 +40,24 @@ export const Popup = () => {
   return (
     <div style={{ padding: '1rem 0' }}>
       <hgroup>
-        <h5 className="">CSS Scripts</h5>
+        <h5 className="">CSS Prototypes</h5>
         <h6>{url?.hostname}</h6>
       </hgroup>
       <div className="my-2">
-        {cssProtos.map((cssProto) => (
-          <div className="flex justify-between items-center">
-            <label className="ellipsis">
+        {cssProtos.map((proto) => (
+          <div style={{ display: 'flex' }}>
+            <label className="ellipsis" style={{ marginRight: 'auto' }}>
               <input
                 type="checkbox"
                 role="switch"
-                checked={cssProto.options.active}
-                onChange={() => handleSwitch(cssProto)}
+                checked={proto.options.active}
+                onChange={() => handleSwitch(proto)}
               />
-              {cssProto.name}
+              {proto.name}
             </label>
+            <a href={'options.html#' + proto.id} target="_blank">
+              <i className="bi bi-pencil" />
+            </a>
           </div>
         ))}
       </div>

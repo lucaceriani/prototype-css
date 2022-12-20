@@ -5,16 +5,19 @@ const getCurrentTabId = async () =>
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => resolve(tabs[0]?.id || 0))
   })
 
-export const injectCss = async (cssProto: CSSProto) => {
+export const injectCss = async (cssProto: CSSProto, tabId: number | null = null) => {
   // insert a style element to the end of the head
   chrome.scripting.executeScript({
-    target: { tabId: await getCurrentTabId() },
+    target: { tabId: tabId || (await getCurrentTabId()) },
     // @ts-ignore
     func: (script: CSSProto) => {
+      let cssToInject = script.cssRaw
+      if (script.options.important) cssToInject = cssToInject.replaceAll(';', ' !important;')
+
       const style = document.createElement('style')
       style.setAttribute('data-source', 'CSS Prototype - ' + script.name)
       style.setAttribute('data-id', script.id)
-      style.appendChild(document.createTextNode(script.cssRaw.replaceAll(';', ' !important;')))
+      style.appendChild(document.createTextNode(cssToInject))
       document.head.append(style)
 
       if (script.options.shadowDom) {
