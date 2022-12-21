@@ -12,7 +12,8 @@ export const injectCss = async (cssProto: CSSProto, tabId: number | null = null)
     // @ts-ignore
     func: (script: CSSProto) => {
       let cssToInject = script.cssRaw
-      if (script.options.important) cssToInject = cssToInject.replaceAll(';', ' !important;')
+      // TODO remove
+      if (script.isImportant || true) cssToInject = cssToInject.replaceAll(';', ' !important;')
 
       const style = document.createElement('style')
       style.setAttribute('data-source', 'CSS Prototype - ' + script.name)
@@ -20,7 +21,7 @@ export const injectCss = async (cssProto: CSSProto, tabId: number | null = null)
       style.appendChild(document.createTextNode(cssToInject))
       document.head.append(style)
 
-      if (script.options.shadowDom) {
+      if (script.isShadowDom) {
         ;[...document.body.querySelectorAll('*')]
           .filter((el) => el.shadowRoot)
           .forEach((elWithShadow) => elWithShadow.shadowRoot?.append(style.cloneNode(true)))

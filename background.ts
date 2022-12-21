@@ -10,7 +10,7 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
     const protos = await getAllCssProtos()
     console.log('protos', protos)
     protos
-      .filter((proto) => proto.options.active && url.href.match(proto.urlMatch))
+      .filter((proto) => proto.isActive && url.href.match(proto.urlMatch))
       .forEach((proto) => injectCss(proto, tabId))
   }
 })

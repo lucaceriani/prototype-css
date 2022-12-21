@@ -3,10 +3,8 @@ export type CSSProto = {
   name: string
   urlMatch: string
   cssRaw: string
-  cssCompiled: string
-  options: {
-    active?: boolean
-    important?: boolean
-    shadowDom?: boolean
-  }
+  cssCompiled?: string
+  isActive?: boolean
+  isImportant?: boolean
+  isShadowDom?: boolean
 }

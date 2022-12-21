@@ -6,7 +6,15 @@ import AceEditor from 'react-ace'
 import { toast, ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import short from 'short-uuid'
-import { addCSSProto, deleteCSSProto, getAllCssProtos, updateCSSProto } from '../storage'
+import {
+  addCSSProto,
+  deleteCSSProto,
+  getAllCssProtos,
+  getItem,
+  importFromUrl,
+  setItem,
+  updateCSSProto,
+} from '../storage'
 import { CSSProto } from '../types'
 import { CSSEditor } from './cssEditor'
 import { useHash } from './hooks/useHash'
@@ -19,6 +27,7 @@ export const Options = () => {
 
   const [protoName, setProtoName] = useState('')
   const [urlMatch, setUrlMatch] = useState('')
+  const [importUrl, setImportUrl] = useState('')
   const editorRef = useRef<AceEditor>(null)
 
   const updateProtos = () =>
@@ -66,7 +75,7 @@ export const Options = () => {
           <br />
           <span style={{ opacity: 0.5 }}>Check console for details</span>
         </>,
-        { type: 'error', autoClose: 2000, hideProgressBar: false }
+        { type: 'warning', autoClose: 2000, hideProgressBar: false }
       )
       // if formatting goes wrong i want to save the original css because
       // i do not want to lose work
@@ -80,8 +89,6 @@ export const Options = () => {
         name: protoName.trim() || 'untitled',
         urlMatch,
         cssRaw: formattedCss,
-        cssCompiled: '',
-        options: {},
       }
       await addCSSProto(newProto)
       // immediately navigate to the new hash
@@ -120,6 +127,7 @@ export const Options = () => {
 
   useEffect(() => {
     updateProtos()
+    getItem<string>('import-url').then((url) => setImportUrl(url || ''))
   }, [])
 
   useEffect(() => {
@@ -132,6 +140,33 @@ export const Options = () => {
       <div className="grid" style={{ gridTemplateColumns: '.3fr .7fr', paddingBottom: '2rem' }}>
         <div>
           <h4 style={{ marginBottom: '.5rem' }}>Prototypes</h4>
+          <div>
+            <input
+              type="text"
+              placeholder="Import from URL"
+              value={importUrl}
+              onChange={(e) => setImportUrl(e.target.value)}
+              style={{ fontSize: '0.8rem' }}
+            />
+            <button
+              onClick={() => {
+                try {
+                  new URL(importUrl)
+                } catch (error) {
+                  return toast('Invalid URL', { type: 'error' })
+                }
+                confirm('If you pull, prototypes with the same id will be overwritten.\nAre you sure?') &&
+                  importFromUrl(importUrl)
+                    .then(updateProtos)
+                    .then(() => toast('Pulled!', { type: 'success' }))
+                    .then(() => setItem('import-url', importUrl))
+              }}
+              className=" outline"
+              style={{ fontSize: '1.5rem', padding: 0, lineHeight: 0, marginBottom: '1rem' }}
+            >
+              <i className="bi bi-arrow-down-short" />
+            </button>
+          </div>
           <button
             onClick={() => (location.hash = short.generate())}
             className=" outline"
@@ -139,6 +174,7 @@ export const Options = () => {
           >
             <i className="bi bi-plus" />
           </button>
+
           {Object.keys(allCssProtosByUrl)
             .sort()
             .map((urlMatch) => (
