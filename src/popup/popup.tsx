@@ -27,7 +27,9 @@ export const Popup = () => {
 
   const updateProtos = () =>
     getAllCssProtos()
-      .then((cssProtos) => cssProtos.filter((p) => url?.href.includes(p.urlMatch)))
+      .then((cssProtos) =>
+        cssProtos.filter((p) => p.urlMatch.split(/, */).some((singleUrlMatch) => url!.href.includes(singleUrlMatch)))
+      )
       .then((cssProtos) => setCssProtos(cssProtos))
 
   const handleSwitch = async (cssProto: CSSProto) => {

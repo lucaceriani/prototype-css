@@ -63,10 +63,18 @@ export const transformGist = (rawGist: string) =>
     .split(/\/\*{3,}/)
     .map((blocks) => blocks.trim())
     .filter((blocks) => blocks.length > 0)
-    .map((blocks) => blocks.split('\n').map((line) => line.trim()))
+    .map((blocks) => blocks.split('\n'))
     .reduce((acc: CSSProto[], blockLines) => {
       const [id, name, urlMatch, _, maybeLF, ...cssRaw] = blockLines
-      return [...acc, { id, name, urlMatch, cssRaw: (maybeLF == '\n' ? '' : maybeLF) + cssRaw.join('\n') }]
+      return [
+        ...acc,
+        {
+          id: id.trim(),
+          name: name.trim(),
+          urlMatch: urlMatch.trim(),
+          cssRaw: (maybeLF == '\n' ? '' : maybeLF) + cssRaw.join('\n'),
+        },
+      ]
     }, [])
 
 const cssProtos: CSSProto[] = [
