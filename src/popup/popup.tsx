@@ -1,7 +1,7 @@
 import { isMatch } from 'matcher'
 import { useEffect, useState } from 'react'
 import { injectCss, removeCss } from '../inject'
-import { getAllCssProtos, setActive } from '../storage'
+import { getAllProtos, getAllProtosForUrl, setActive } from '../storage'
 import { CSSProto } from '../types'
 import short from 'short-uuid'
 
@@ -25,12 +25,7 @@ export const Popup = () => {
     updateProtos()
   }, [url])
 
-  const updateProtos = () =>
-    getAllCssProtos()
-      .then((cssProtos) =>
-        cssProtos.filter((p) => p.urlMatch.split(/, */).some((singleUrlMatch) => url!.href.includes(singleUrlMatch)))
-      )
-      .then((cssProtos) => setCssProtos(cssProtos))
+  const updateProtos = () => getAllProtosForUrl(url!.href).then((cssProtos) => setCssProtos(cssProtos))
 
   const handleSwitch = async (cssProto: CSSProto) => {
     await setActive(cssProto.id, !cssProto.isActive)

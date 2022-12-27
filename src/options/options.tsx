@@ -6,15 +6,7 @@ import AceEditor from 'react-ace'
 import { toast, ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import short from 'short-uuid'
-import {
-  addCSSProto,
-  deleteCSSProto,
-  getAllCssProtos,
-  getItem,
-  importFromUrl,
-  setItem,
-  updateCSSProto,
-} from '../storage'
+import { addProto, deleteProto, getAllProtos, getItem, importFromUrl, setItem, updateProto } from '../storage'
 import { CSSProto } from '../types'
 import { CSSEditor } from './cssEditor'
 import { useHash } from './hooks/useHash'
@@ -31,7 +23,7 @@ export const Options = () => {
   const editorRef = useRef<AceEditor>(null)
 
   const updateProtos = () =>
-    getAllCssProtos().then((cssProtos) => {
+    getAllProtos().then((cssProtos) => {
       setAllCssProtosByUrl(groupBy(cssProtos, 'urlMatch'))
 
       // group by the id that is unique, so i don't want an array inside (groupBy)
@@ -90,11 +82,11 @@ export const Options = () => {
         urlMatch,
         cssRaw: formattedCss,
       }
-      await addCSSProto(newProto)
+      await addProto(newProto)
       // immediately navigate to the new hash
       location.hash = newProto.id
     } else {
-      await updateCSSProto(hashId, {
+      await updateProto(hashId, {
         name: protoName,
         urlMatch,
         cssRaw: formattedCss,
@@ -216,7 +208,7 @@ export const Options = () => {
                   className="outline secondary"
                   onClick={() =>
                     confirm('Delete "' + protoName + '" ?') &&
-                    deleteCSSProto(hashId)
+                    deleteProto(hashId)
                       .then(updateProtos)
                       .then(() => (location.hash = ''))
                   }
